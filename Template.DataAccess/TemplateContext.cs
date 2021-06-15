@@ -6,7 +6,9 @@
 
     using Microsoft.EntityFrameworkCore;
 
+    using Template.DataAccess.Configuration;
     using Template.DataAccess.Seed;
+    using Template.Entities;
 
     public class TemplateContext : DbContext
     {
@@ -14,6 +16,8 @@
             : base(options)
         {
         }
+
+        public DbSet<PersonEntity> Persons { get; set; }
 
         public async Task EnsureSeedData(bool isProduction)
         {
@@ -25,6 +29,7 @@
         {
             List<Action> listConfiguration = new List<Action>
             {
+                new PersonConfiguration(modelBuilder).Execute,
             };
 
             foreach (Action action in listConfiguration)

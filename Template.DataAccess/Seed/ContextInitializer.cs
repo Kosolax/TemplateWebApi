@@ -9,7 +9,7 @@
         {
             List<IContextSeed> listSeed = new List<IContextSeed>
             {
-
+                new PersonSeed(context),
             };
 
             foreach (IContextSeed contextSeed in listSeed)

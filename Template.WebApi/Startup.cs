@@ -9,7 +9,10 @@ namespace Template.WebApi
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
 
+    using Template.Business;
     using Template.DataAccess;
+    using Template.IBusiness;
+    using Template.IDataAccess;
 
     public class Startup
     {
@@ -57,10 +60,12 @@ namespace Template.WebApi
 
         private void RegisterBusiness(IServiceCollection services)
         {
+            services.AddScoped<IPersonBusiness, PersonBusiness>();
         }
 
         private void RegisterDataAccess(IServiceCollection services)
         {
+            services.AddScoped<IPersonDataAccess, PersonDataAccess>();
         }
     }
 }

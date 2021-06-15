@@ -14,11 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Template.Business\Template.Business.csproj" />
     <ProjectReference Include="..\Template.DataAccess\Template.DataAccess.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\Template.IBusiness\Template.IBusiness.csproj" />
+    <ProjectReference Include="..\Template.WebApi.Route\Template.WebApi.Route.csproj" />
   </ItemGroup>
 
 </Project>

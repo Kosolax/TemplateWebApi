@@ -5,4 +5,9 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Template.IBusiness\Template.IBusiness.csproj" />
+    <ProjectReference Include="..\Template.IDataAccess\Template.IDataAccess.csproj" />
+  </ItemGroup>
+
 </Project>
