@@ -2,7 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Security.Claims;
+    using System.Text;
     using System.Threading.Tasks;
+
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.IdentityModel.Tokens;
 
     using Template.BusinessObject;
     using Template.Entities;
@@ -11,16 +17,44 @@
 
     public class PersonBusiness : IPersonBusiness
     {
+        private readonly IConfiguration configuration;
+
         private readonly IPersonDataAccess dataAccess;
 
-        public PersonBusiness(IPersonDataAccess dataAccess)
+        public PersonBusiness(IPersonDataAccess dataAccess, IConfiguration configuration)
         {
             this.dataAccess = dataAccess;
+            this.configuration = configuration;
         }
 
-        public Task<string> Connection(string authorizationHeader)
+        public async Task<string> Connection(string authorizationHeader)
         {
-            throw new NotImplementedException();
+            KeyValuePair<string, string> emailPassword = this.ReadAuthenticationHeader(authorizationHeader);
+
+            PersonEntity entity = await this.dataAccess.GetFromEmailAndPassword(emailPassword.Key, emailPassword.Value);
+
+            if (entity != null)
+            {
+                List<Claim> claims = new List<Claim>();
+                claims.Add(new Claim(ClaimsIdentity.DefaultRoleClaimType, entity.Role.ToString()));
+
+                SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(claims),
+                    Expires = DateTime.UtcNow.AddSeconds(120),
+                    SigningCredentials = new SigningCredentials(
+                        new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(this.configuration["JWTSecret"])),
+                        SecurityAlgorithms.HmacSha256Signature),
+                };
+
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                SecurityToken securityToken = tokenHandler.CreateToken(tokenDescriptor);
+
+                return tokenHandler.WriteToken(securityToken);
+            }
+
+            return string.Empty;
         }
 
         public async Task<KeyValuePair<bool, Person>> CreateOrUpdate(Person personToCreateOrUpdate)
@@ -104,6 +138,23 @@
             {
                 this.dataAccess?.Dispose();
             }
+        }
+
+        private KeyValuePair<string, string> ReadAuthenticationHeader(string authenticationHeader)
+        {
+            if (authenticationHeader != null && authenticationHeader.StartsWith("Basic"))
+            {
+                // Read and decode the basic header
+                string encodedUsernamePassword = authenticationHeader["Basic ".Length..].Trim();
+                Encoding encoding = Encoding.GetEncoding("iso-8859-1");
+                string usernamePassword = encoding.GetString(Convert.FromBase64String(encodedUsernamePassword));
+                string[] emailPassword = usernamePassword.Split(':');
+
+                // Check if we have login and password to avoir crash OutOfRangeException
+                return new KeyValuePair<string, string>(emailPassword[0], emailPassword[1]);
+            }
+
+            return new KeyValuePair<string, string>(string.Empty, string.Empty);
         }
     }
 }

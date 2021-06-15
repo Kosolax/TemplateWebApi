@@ -7,6 +7,7 @@
 
     using Template.BusinessObject;
     using Template.BusinessObject.Validation.Resources;
+    using Template.Entities.Enum;
     using Template.IBusiness;
     using Template.WebApi.Route;
 
@@ -24,9 +25,19 @@
         [Route(PersonRoute.Connection)]
         public async Task<IActionResult> Connection()
         {
-            return this.BadRequest();
+            var token = await this.personBusiness.Connection(this.HttpContext.Request.Headers["Authorization"]);
+            this.Response.Headers.Add("Token", token);
+            if (!string.IsNullOrEmpty(token))
+            {
+                return this.Ok(token);
+            }
+            else
+            {
+                return this.BadRequest();
+            }
         }
 
+        [AuthorizeRoles(RoleType.Admin)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Person personToCreate)
         {
@@ -51,6 +62,7 @@
             }
         }
 
+        [AuthorizeRoles(RoleType.Admin)]
         [HttpDelete]
         [Route("{id:int}")]
         public async Task<IActionResult> Delete(int id)
@@ -71,6 +83,7 @@
             }
         }
 
+        [AuthorizeRoles(RoleType.Admin)]
         [HttpGet]
         [Route("{id:int}")]
         public async Task<IActionResult> Get(int id)
@@ -92,6 +105,7 @@
             }
         }
 
+        [AuthorizeRoles(RoleType.Admin)]
         [HttpGet]
         public async Task<IActionResult> List()
         {
@@ -105,6 +119,7 @@
             }
         }
 
+        [AuthorizeRoles(RoleType.Admin)]
         [HttpPut]
         [Route("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] Person personToUpdate)
